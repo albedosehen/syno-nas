@@ -1,0 +1,467 @@
+# ==============================================================================
+# Synology NAS Docker Management - Master Docker Compose
+# ==============================================================================
+# 
+# This master docker-compose.yml provides centralized orchestration for all
+# services in the Synology NAS Docker management project. It defines global
+# networks and volumes that can be shared across services.
+#
+# This file provides an alternative deployment method to individual service
+# deployment. You can either:
+# 1. Deploy all services together using this master file
+# 2. Deploy services individually using their specific compositions
+# 3. Deploy a subset of services by commenting/uncommenting sections
+#
+# Compatible with Synology DSM 7.2+ and standard Linux environments.
+#
+# Usage:
+#   # Deploy all services
+#   docker-compose up -d
+#
+#   # Deploy specific services
+#   docker-compose up -d portainer
+#
+#   # Scale services
+#   docker-compose up -d --scale service_name=2
+#
+# Author: Synology NAS Docker Management Project
+# Version: 1.0.0
+# ==============================================================================
+
+# Include global environment variables
+include:
+  - .env
+
+services:
+  # ==========================================================================
+  # Management Services
+  # ==========================================================================
+  
+  # Portainer - Docker container management UI
+  portainer:
+    image: portainer/portainer-ce:${PORTAINER_VERSION:-lts}
+    container_name: portainer
+    restart: unless-stopped
+    
+    # Security and local network access only
+    command: -H unix:///var/run/docker.sock
+    
+    # Environment variables from global configuration
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+      - PORTAINER_HTTP_DISABLED=${PORTAINER_HTTP_DISABLED:-false}
+      - PORTAINER_HTTPS_ONLY=${PORTAINER_HTTPS_ONLY:-false}
+      
+    # Port mapping - using global network
+    ports:
+      - "${PORTAINER_PORT:-9000}:9000"
+      - "${PORTAINER_EDGE_PORT:-8000}:8000"
+    
+    # Volume mappings optimized for Synology NAS
+    volumes:
+      # Docker socket for container management
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Portainer data persistence - using global volume
+      - portainer_data:/data
+      # Optional: Additional Docker volumes access
+      - ${DOCKER_VOLUMES_PATH:-/volume1/docker}:/var/lib/docker/volumes:ro
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9000/"]
+      interval: ${HEALTH_CHECK_INTERVAL:-30}s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Resource limits based on global configuration
+    deploy:
+      resources:
+        limits:
+          memory: ${PORTAINER_MEMORY_LIMIT:-512M}
+          cpus: ${PORTAINER_CPU_LIMIT:-0.5}
+        reservations:
+          memory: ${PORTAINER_MEMORY_RESERVATION:-256M}
+          cpus: ${PORTAINER_CPU_RESERVATION:-0.1}
+    
+    # Use global management network
+    networks:
+      - management_network
+      - shared_network
+    
+    # Labels for organization and management
+    labels:
+      - "traefik.enable=${TRAEFIK_ENABLE:-false}"
+      - "com.synology.nas.description=Docker container management UI"
+      - "com.synology.nas.category=management"
+      - "com.synology.nas.environment=${ENVIRONMENT:-development}"
+      - "com.synology.nas.version=${PROJECT_VERSION:-1.0.0}"
+
+  # ==========================================================================
+  # Media Services (Examples - Uncomment to enable)
+  # ==========================================================================
+  
+  # # Plex - Media server
+  # plex:
+  #   image: plexinc/pms-docker:${PLEX_VERSION:-latest}
+  #   container_name: plex
+  #   restart: unless-stopped
+  #   
+  #   environment:
+  #     - PUID=${PUID:-1000}
+  #     - PGID=${PGID:-1000}
+  #     - TZ=${TZ:-UTC}
+  #     - PLEX_CLAIM=${PLEX_CLAIM:-}
+  #   
+  #   ports:
+  #     - "${PLEX_PORT:-32400}:32400"
+  #   
+  #   volumes:
+  #     - plex_config:/config
+  #     - ${MEDIA_PATH:-/volume1/media}:/media:ro
+  #     - plex_transcode:/transcode
+  #   
+  #   networks:
+  #     - media_network
+  #     - shared_network
+  #   
+  #   labels:
+  #     - "com.synology.nas.category=media"
+
+  # # Jellyfin - Alternative media server
+  # jellyfin:
+  #   image: jellyfin/jellyfin:${JELLYFIN_VERSION:-latest}
+  #   container_name: jellyfin
+  #   restart: unless-stopped
+  #   
+  #   environment:
+  #     - PUID=${PUID:-1000}
+  #     - PGID=${PGID:-1000}
+  #     - TZ=${TZ:-UTC}
+  #   
+  #   ports:
+  #     - "${JELLYFIN_PORT:-8096}:8096"
+  #   
+  #   volumes:
+  #     - jellyfin_config:/config
+  #     - ${MEDIA_PATH:-/volume1/media}:/media:ro
+  #     - jellyfin_cache:/cache
+  #   
+  #   networks:
+  #     - media_network
+  #     - shared_network
+  #   
+  #   labels:
+  #     - "com.synology.nas.category=media"
+
+  # ==========================================================================
+  # Download Services (Examples - Uncomment to enable)
+  # ==========================================================================
+  
+  # # qBittorrent - BitTorrent client
+  # qbittorrent:
+  #   image: linuxserver/qbittorrent:${QBITTORRENT_VERSION:-latest}
+  #   container_name: qbittorrent
+  #   restart: unless-stopped
+  #   
+  #   environment:
+  #     - PUID=${PUID:-1000}
+  #     - PGID=${PGID:-1000}
+  #     - TZ=${TZ:-UTC}
+  #     - WEBUI_PORT=${QBITTORRENT_PORT:-8080}
+  #   
+  #   ports:
+  #     - "${QBITTORRENT_PORT:-8080}:8080"
+  #     - "${QBITTORRENT_BT_PORT:-6881}:6881"
+  #     - "${QBITTORRENT_BT_PORT:-6881}:6881/udp"
+  #   
+  #   volumes:
+  #     - qbittorrent_config:/config
+  #     - ${DOWNLOADS_PATH:-/volume1/downloads}:/downloads
+  #   
+  #   networks:
+  #     - download_network
+  #     - shared_network
+  #   
+  #   labels:
+  #     - "com.synology.nas.category=download"
+
+  # ==========================================================================
+  # Web Services (Examples - Uncomment to enable)
+  # ==========================================================================
+  
+  # # Nginx Proxy Manager - Reverse proxy management
+  # nginx-proxy-manager:
+  #   image: jc21/nginx-proxy-manager:${NGINX_PM_VERSION:-latest}
+  #   container_name: nginx-proxy-manager
+  #   restart: unless-stopped
+  #   
+  #   environment:
+  #     - PUID=${PUID:-1000}
+  #     - PGID=${PGID:-1000}
+  #     - TZ=${TZ:-UTC}
+  #   
+  #   ports:
+  #     - "${NGINX_PM_HTTP_PORT:-80}:80"
+  #     - "${NGINX_PM_HTTPS_PORT:-443}:443"
+  #     - "${NGINX_PM_ADMIN_PORT:-81}:81"
+  #   
+  #   volumes:
+  #     - nginx_pm_data:/data
+  #     - nginx_pm_letsencrypt:/etc/letsencrypt
+  #   
+  #   networks:
+  #     - web_network
+  #     - shared_network
+  #   
+  #   labels:
+  #     - "com.synology.nas.category=web"
+
+  # ==========================================================================
+  # Monitoring Services (Examples - Uncomment to enable)
+  # ==========================================================================
+  
+  # # Prometheus - Metrics collection
+  # prometheus:
+  #   image: prom/prometheus:${PROMETHEUS_VERSION:-latest}
+  #   container_name: prometheus
+  #   restart: unless-stopped
+  #   
+  #   command:
+  #     - '--config.file=/etc/prometheus/prometheus.yml'
+  #     - '--storage.tsdb.path=/prometheus'
+  #     - '--web.console.libraries=/etc/prometheus/console_libraries'
+  #     - '--web.console.templates=/etc/prometheus/consoles'
+  #     - '--storage.tsdb.retention.time=${PROMETHEUS_RETENTION:-15d}'
+  #     - '--web.enable-lifecycle'
+  #   
+  #   ports:
+  #     - "${PROMETHEUS_PORT:-9090}:9090"
+  #   
+  #   volumes:
+  #     - prometheus_config:/etc/prometheus
+  #     - prometheus_data:/prometheus
+  #   
+  #   networks:
+  #     - monitoring_network
+  #     - shared_network
+  #   
+  #   labels:
+  #     - "com.synology.nas.category=monitoring"
+
+  # # Grafana - Metrics visualization
+  # grafana:
+  #   image: grafana/grafana:${GRAFANA_VERSION:-latest}
+  #   container_name: grafana
+  #   restart: unless-stopped
+  #   
+  #   environment:
+  #     - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+  #     - GF_USERS_ALLOW_SIGN_UP=false
+  #   
+  #   ports:
+  #     - "${GRAFANA_PORT:-3000}:3000"
+  #   
+  #   volumes:
+  #     - grafana_data:/var/lib/grafana
+  #   
+  #   networks:
+  #     - monitoring_network
+  #     - shared_network
+  #   
+  #   labels:
+  #     - "com.synology.nas.category=monitoring"
+
+# ==============================================================================
+# Global Networks
+# ==============================================================================
+# These networks can be used by all services and provide proper isolation
+# while allowing controlled inter-service communication.
+
+networks:
+  # Shared network for inter-service communication
+  shared_network:
+    name: ${PROJECT_NAME:-synology-nas}_shared
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: ${SHARED_NETWORK_SUBNET:-172.20.0.0/16}
+    driver_opts:
+      com.docker.network.bridge.name: br-${PROJECT_NAME:-synology-nas}-shared
+
+  # Management services network
+  management_network:
+    name: ${PROJECT_NAME:-synology-nas}_management
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: ${MANAGEMENT_NETWORK_SUBNET:-172.21.0.0/16}
+    driver_opts:
+      com.docker.network.bridge.name: br-${PROJECT_NAME:-synology-nas}-mgmt
+
+  # Media services network
+  media_network:
+    name: ${PROJECT_NAME:-synology-nas}_media
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: ${MEDIA_NETWORK_SUBNET:-172.22.0.0/16}
+    driver_opts:
+      com.docker.network.bridge.name: br-${PROJECT_NAME:-synology-nas}-media
+
+  # Download services network
+  download_network:
+    name: ${PROJECT_NAME:-synology-nas}_download
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: ${DOWNLOAD_NETWORK_SUBNET:-172.23.0.0/16}
+    driver_opts:
+      com.docker.network.bridge.name: br-${PROJECT_NAME:-synology-nas}-download
+
+  # Web services network
+  web_network:
+    name: ${PROJECT_NAME:-synology-nas}_web
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: ${WEB_NETWORK_SUBNET:-172.24.0.0/16}
+    driver_opts:
+      com.docker.network.bridge.name: br-${PROJECT_NAME:-synology-nas}-web
+
+  # Monitoring services network
+  monitoring_network:
+    name: ${PROJECT_NAME:-synology-nas}_monitoring
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: ${MONITORING_NETWORK_SUBNET:-172.25.0.0/16}
+    driver_opts:
+      com.docker.network.bridge.name: br-${PROJECT_NAME:-synology-nas}-monitor
+
+# ==============================================================================
+# Global Volumes
+# ==============================================================================
+# These volumes provide centralized storage that can be shared across services
+# and are optimized for Synology NAS environments.
+
+volumes:
+  # Management service volumes
+  portainer_data:
+    name: ${PROJECT_NAME:-synology-nas}_portainer_data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_ROOT_PATH:-./data}/portainer
+
+  # Media service volumes
+  plex_config:
+    name: ${PROJECT_NAME:-synology-nas}_plex_config
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_ROOT_PATH:-./data}/plex/config
+
+  plex_transcode:
+    name: ${PROJECT_NAME:-synology-nas}_plex_transcode
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${TEMP_PATH:-/tmp}/plex-transcode
+
+  jellyfin_config:
+    name: ${PROJECT_NAME:-synology-nas}_jellyfin_config
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_ROOT_PATH:-./data}/jellyfin/config
+
+  jellyfin_cache:
+    name: ${PROJECT_NAME:-synology-nas}_jellyfin_cache
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CACHE_PATH:-./cache}/jellyfin
+
+  # Download service volumes
+  qbittorrent_config:
+    name: ${PROJECT_NAME:-synology-nas}_qbittorrent_config
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_ROOT_PATH:-./data}/qbittorrent
+
+  # Web service volumes
+  nginx_pm_data:
+    name: ${PROJECT_NAME:-synology-nas}_nginx_pm_data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_ROOT_PATH:-./data}/nginx-proxy-manager
+
+  nginx_pm_letsencrypt:
+    name: ${PROJECT_NAME:-synology-nas}_nginx_pm_letsencrypt
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_ROOT_PATH:-./data}/letsencrypt
+
+  # Monitoring service volumes
+  prometheus_config:
+    name: ${PROJECT_NAME:-synology-nas}_prometheus_config
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_ROOT_PATH:-./data}/prometheus/config
+
+  prometheus_data:
+    name: ${PROJECT_NAME:-synology-nas}_prometheus_data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_ROOT_PATH:-./data}/prometheus/data
+
+  grafana_data:
+    name: ${PROJECT_NAME:-synology-nas}_grafana_data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_ROOT_PATH:-./data}/grafana
+
+# ==============================================================================
+# Service Dependencies and Profiles
+# ==============================================================================
+# Use profiles to group services for selective deployment
+
+# Example profile usage:
+# docker-compose --profile management up -d    # Deploy only management services
+# docker-compose --profile media up -d         # Deploy only media services
+# docker-compose --profile full up -d          # Deploy all services
+
+# To use profiles, add this to service definitions:
+# profiles:
+#   - management  # for management services
+#   - media       # for media services
+#   - download    # for download services
+#   - web         # for web services
+#   - monitoring  # for monitoring services
+#   - full        # for all services
