@@ -1,0 +1,66 @@
+services:
+  portainer:
+    image: portainer/portainer-ce:lts
+    container_name: portainer
+    restart: unless-stopped
+    
+    # Security and local network access only
+    command: -H unix:///var/run/docker.sock
+    
+    # Environment variables
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+      
+    # Port mapping - local network access only
+    ports:
+      - "${PORTAINER_PORT:-9000}:9000"
+      - "${PORTAINER_EDGE_PORT:-8000}:8000"
+    
+    # Volume mappings optimized for Synology NAS
+    volumes:
+      # Docker socket for container management
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Portainer data persistence
+      - ${PORTAINER_DATA_PATH:-./data}:/data
+      # Optional: Additional Docker volumes access
+      - /volume1/docker:/var/lib/docker/volumes:ro
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    
+    # Network configuration
+    networks:
+      - portainer_network
+    
+    # Labels for organization and management
+    labels:
+      - "traefik.enable=false"  # Disable external access through reverse proxy
+      - "com.synology.portainer.description=Docker container management UI"
+      - "com.synology.portainer.category=management"
+
+# Networks
+networks:
+  portainer_network:
+    driver: bridge
+    name: portainer_network
+
+# Volumes
+volumes:
+  portainer_data:
+    name: portainer_data
+    driver: local
