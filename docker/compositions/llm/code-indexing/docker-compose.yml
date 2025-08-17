@@ -13,9 +13,9 @@ services:
     ports:
       - "6333:6333"
     environment:
-      - QDRANT__SERVICE__API_KEY=alpaca-trader
+      - QDRANT__SERVICE__API_KEY=
     volumes:
-      - qdrant-alpaca-trader-storage:/qdrant/storage
+      - qdrant-storage:/qdrant/storage
     networks:
       website-network:
         ipv4_address: 172.11.0.2
@@ -43,5 +43,5 @@ services:
               capabilities: [gpu]
 
 volumes:
-  qdrant-alpaca-trader-storage:
+  qdrant-storage:
   ollama-data:
