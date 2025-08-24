@@ -335,8 +335,9 @@ function Test-Configuration {
 function New-DirectoryStructure {
     Write-ColorOutput "Step 3: Creating directory structure..." -Type Step
     
-    $puid = [Environment]::GetEnvironmentVariable('PUID', 'Process') ?? '1000'
-    $pgid = [Environment]::GetEnvironmentVariable('PGID', 'Process') ?? '1000'
+    # Note: PUID/PGID are Linux-specific concepts for user/group ownership
+    # On Windows, we use ACL-based permissions instead
+    Write-ColorOutput "Creating directories with Windows ACL permissions..." -Type Debug
     
     $directories = @(
         'C:\DockerData\core',
@@ -410,6 +411,8 @@ function Invoke-Rollback {
     try {
         $rollbackData = Get-Content $Script:RollbackStateFile -Encoding UTF8 | ConvertFrom-Json
         
+        Write-ColorOutput "Rollback initiated from deployment at $(Get-Date -Date ([DateTimeOffset]::FromUnixTimeSeconds($rollbackData.DeploymentTimestamp)))" -Type Debug
+        
         # Stop and remove new containers
         Write-ColorOutput "Stopping and removing containers..." -Type Debug
         docker-compose down --remove-orphans 2>$null
@@ -417,6 +420,9 @@ function Invoke-Rollback {
         # Remove networks created during deployment
         Write-ColorOutput "Cleaning up networks..." -Type Debug
         docker network rm core-network 2>$null
+        
+        # Log rollback details for audit
+        Write-ColorOutput "Rollback details: Backup was $(if ($rollbackData.BackupCreated) { 'created' } else { 'skipped' })" -Type Debug
         
         Write-ColorOutput "Rollback completed. Please check system state manually." -Type Info
         Remove-Item $Script:RollbackStateFile -Force -ErrorAction SilentlyContinue
@@ -580,7 +586,7 @@ function Test-Deployment {
     
     try {
         $response = Invoke-WebRequest -Uri $portainerUrl -UseBasicParsing -TimeoutSec 10 -ErrorAction Stop
-        Write-ColorOutput "✓ Portainer is accessible at $portainerUrl" -Type Debug
+        Write-ColorOutput "✓ Portainer is accessible at $portainerUrl (Status: $($response.StatusCode))" -Type Debug
     }
     catch {
         Write-ColorOutput "Portainer may not be fully ready at $portainerUrl" -Type Warn
@@ -593,7 +599,7 @@ function Test-Deployment {
     
     try {
         $response = Invoke-WebRequest -Uri $surrealdbUrl -UseBasicParsing -TimeoutSec 10 -ErrorAction Stop
-        Write-ColorOutput "✓ SurrealDB is accessible at http://localhost:$surrealdbPort" -Type Debug
+        Write-ColorOutput "✓ SurrealDB is accessible at http://localhost:$surrealdbPort (Status: $($response.StatusCode))" -Type Debug
     }
     catch {
         Write-ColorOutput "SurrealDB may not be fully ready at http://localhost:$surrealdbPort" -Type Warn
