@@ -1,0 +1,13 @@
+services:
+  surreal:
+    container_name: surrealdb
+    entrypoint: 
+      - /surreal 
+      - start 
+      - --user
+      - "sdb-admin"
+      - --pass
+      - "pass"
+    image: surrealdb/surrealdb:latest
+    ports:
+      - 8000:8000
