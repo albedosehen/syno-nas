@@ -1,0 +1,15 @@
+{
+  // Necessary tools needed for working in this repo when using windows
+  "tool": [
+    {
+      "id": "Doppler.doppler",
+      "name": "doppler",
+      "desc": "Secrets management CLI"
+    },
+    {
+      "id": "Casey.Just",
+      "name": "just",
+      "desc": "just cli standalone for justfiles"
+    }
+  ]
+}

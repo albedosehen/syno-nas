@@ -4,14 +4,15 @@
 ## Allowed Directories
 !docker/
 !docker/**
-!scripts/
-!scripts/**
+
 !docs
 !docs/**
-!windows/
-!windows/**
+
 !synology/
 !synology/**
+
+!windows/
+!windows/**
 
 ## Allowed Files
 !.gitignore
