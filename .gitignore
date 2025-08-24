@@ -1,12 +1,27 @@
+# Whitelist
 *
 
+## Allowed Directories
 !docker/
 !docker/**
 !scripts/
 !scripts/**
 !docs
 !docs/**
+!windows/
+!windows/**
+!synology/
+!synology/**
 
-*.env
-!*.env.template
+## Allowed Files
 !.gitignore
+!*.env.template
+!README.md
+!docker-compose.yml
+!justfile
+!tasks.ps1
+
+# Explicit ignore
+*.env
+*.envrc
+*.devenv
