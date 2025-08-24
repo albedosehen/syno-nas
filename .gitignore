@@ -1,0 +1,12 @@
+*
+
+!docker/
+!docker/**
+!scripts/
+!scripts/**
+!docs
+!docs/**
+
+*.env
+!*.env.template
+!.gitignore
