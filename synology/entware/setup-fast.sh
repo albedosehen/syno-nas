@@ -32,8 +32,38 @@ export PATH=/opt/bin:/opt/sbin:$PATH
 echo "[*] Updating package lists..."
 opkg update
 
-echo "[*] Installing useful tools (jq, git, ripgrep, htop, tmux)..."
-opkg install jq git ripgrep htop tmux ca-bundle git-http
+echo "[*] Installing useful tools (jq, git, zsh, ripgrep, tree, eza, curl, htop, tmux)..."
+opkg install jq git git-http zsh ripgrep tree eza curl htop tmux ca-bundle
+
+echo "[*] Installing GitHub CLI..."
+# Detect architecture for GitHub CLI
+ARCH=$(uname -m)
+case "$ARCH" in
+  x86_64) GH_ARCH="amd64" ;;
+  aarch64) GH_ARCH="arm64" ;;
+  armv7l) GH_ARCH="armv6" ;;
+  *)
+    echo "    Unsupported architecture for GitHub CLI: $ARCH. Skipping."
+    GH_ARCH=""
+    ;;
+esac
+
+if [ -n "$GH_ARCH" ]; then
+  echo "    Fetching latest GitHub CLI version..."
+  GH_VERSION=$(curl -s https://api.github.com/repos/cli/cli/releases/latest | grep '"tag_name"' | cut -d '"' -f 4 | sed 's/^v//')
+  if [ -n "$GH_VERSION" ]; then
+    echo "    Downloading GitHub CLI v$GH_VERSION for $GH_ARCH..."
+    wget -O /tmp/gh.tar.gz "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_${GH_ARCH}.tar.gz"
+    cd /tmp
+    tar -xzf gh.tar.gz
+    cp "gh_${GH_VERSION}_linux_${GH_ARCH}/bin/gh" /opt/bin/
+    chmod 755 /opt/bin/gh
+    rm -rf /tmp/gh.tar.gz "gh_${GH_VERSION}_linux_${GH_ARCH}"
+    echo "    GitHub CLI installed successfully."
+  else
+    echo "    Failed to fetch GitHub CLI version. Skipping."
+  fi
+fi
 
 echo "[*] Creating DSM Task Scheduler entry for auto-start..."
 TASK_NAME="Entware Startup"
@@ -48,3 +78,8 @@ echo "[*] Done. Verify with:"
 echo "    jq --version"
 echo "    git --version"
 echo "    rg --version"
+echo "    tree --version"
+echo "    eza --version"
+if [ -x "/opt/bin/gh" ]; then
+  echo "    gh --version"
+fi

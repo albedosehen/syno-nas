@@ -24,7 +24,7 @@ readonly CHECKSUM_URL_SUFFIX="/installer/generic.sh.sha256"
 : "${ENTWARE_ARCH:=""}"
 : "${ENTWARE_INSTALL_PATH:="/opt"}"
 : "${ENTWARE_BACKUP_EXISTING:="true"}"
-: "${ENTWARE_INSTALL_PACKAGES:="jq git ripgrep htop tmux ca-bundle git-http"}"
+: "${ENTWARE_INSTALL_PACKAGES:="jq git git-http zsh ripgrep tree eza curl htop tmux ca-bundle"}"
 : "${ENTWARE_CREATE_SCHEDULER_TASK:="true"}"
 : "${ENTWARE_VERBOSE:="false"}"
 : "${ENTWARE_DRY_RUN:="false"}"
@@ -432,6 +432,132 @@ install_default_packages() {
     fi
 }
 
+install_github_cli() {
+    log_step "Installing GitHub CLI (gh)..."
+    
+    if [[ "${ENTWARE_DRY_RUN}" == "true" ]]; then
+        log_info "DRY RUN: Would install GitHub CLI"
+        return
+    fi
+    
+    # Detect architecture for GitHub CLI
+    local arch
+    arch=$(uname -m)
+    local gh_arch
+    
+    case "$arch" in
+        x86_64)
+            gh_arch="amd64"
+            ;;
+        aarch64)
+            gh_arch="arm64"
+            ;;
+        armv7l)
+            gh_arch="armv6"
+            ;;
+        *)
+            log_warn "Unsupported architecture for GitHub CLI: $arch. Skipping installation."
+            return
+            ;;
+    esac
+    
+    log_info "Installing GitHub CLI for architecture: $gh_arch"
+    
+    # Create temporary directory for GitHub CLI installation
+    local gh_temp_dir
+    gh_temp_dir=$(mktemp -d -t github-cli.XXXXXX)
+    
+    # Cleanup function for GitHub CLI installation
+    local cleanup_gh() {
+        if [[ -d "$gh_temp_dir" ]]; then
+            rm -rf "$gh_temp_dir"
+        fi
+    }
+    
+    # Get latest GitHub CLI version
+    log_info "Fetching latest GitHub CLI version..."
+    local gh_version
+    if ! gh_version=$(curl -s https://api.github.com/repos/cli/cli/releases/latest | grep '"tag_name"' | cut -d '"' -f 4 | sed 's/^v//'); then
+        log_error "Failed to fetch latest GitHub CLI version"
+        cleanup_gh
+        return 1
+    fi
+    
+    if [[ -z "$gh_version" ]]; then
+        log_error "Could not determine GitHub CLI version"
+        cleanup_gh
+        return 1
+    fi
+    
+    log_info "Latest GitHub CLI version: $gh_version"
+    
+    # Download GitHub CLI
+    local gh_url="https://github.com/cli/cli/releases/download/v${gh_version}/gh_${gh_version}_linux_${gh_arch}.tar.gz"
+    local gh_tarball="$gh_temp_dir/gh.tar.gz"
+    
+    log_info "Downloading GitHub CLI from: $gh_url"
+    if ! wget -O "$gh_tarball" "$gh_url" 2>&1 | tee -a "${LOG_FILE}"; then
+        log_error "Failed to download GitHub CLI"
+        cleanup_gh
+        return 1
+    fi
+    
+    # Extract GitHub CLI
+    log_info "Extracting GitHub CLI..."
+    if ! tar -xzf "$gh_tarball" -C "$gh_temp_dir" 2>&1 | tee -a "${LOG_FILE}"; then
+        log_error "Failed to extract GitHub CLI"
+        cleanup_gh
+        return 1
+    fi
+    
+    # Find the extracted directory
+    local gh_extracted_dir
+    gh_extracted_dir=$(find "$gh_temp_dir" -name "gh_${gh_version}_linux_${gh_arch}" -type d | head -n1)
+    
+    if [[ ! -d "$gh_extracted_dir" ]]; then
+        log_error "Could not find extracted GitHub CLI directory"
+        cleanup_gh
+        return 1
+    fi
+    
+    # Install GitHub CLI binary
+    local gh_binary="$gh_extracted_dir/bin/gh"
+    if [[ ! -f "$gh_binary" ]]; then
+        log_error "GitHub CLI binary not found in extracted archive"
+        cleanup_gh
+        return 1
+    fi
+    
+    log_info "Installing GitHub CLI to /opt/bin/gh..."
+    if ! cp "$gh_binary" /opt/bin/gh; then
+        log_error "Failed to copy GitHub CLI binary to /opt/bin/"
+        cleanup_gh
+        return 1
+    fi
+    
+    # Set executable permissions
+    if ! chmod 755 /opt/bin/gh; then
+        log_error "Failed to set executable permissions on GitHub CLI"
+        cleanup_gh
+        return 1
+    fi
+    
+    # Verify installation
+    if /opt/bin/gh --version &>/dev/null; then
+        log_success "GitHub CLI installed successfully"
+        local installed_version
+        installed_version=$(/opt/bin/gh --version | head -n1 | awk '{print $3}')
+        log_info "Installed GitHub CLI version: $installed_version"
+    else
+        log_error "GitHub CLI installation verification failed"
+        cleanup_gh
+        return 1
+    fi
+    
+    cleanup_gh
+    return 0
+}
+
 create_scheduler_task() {
     if [[ "${ENTWARE_CREATE_SCHEDULER_TASK}" != "true" ]]; then
         log_info "Skipping scheduler task creation (ENTWARE_CREATE_SCHEDULER_TASK=false)"
@@ -520,6 +646,13 @@ display_installation_summary() {
                 echo "  /opt/bin/$package --version"
             fi
         done
+    fi
+    
+    # Check for GitHub CLI
+    if [[ -x "/opt/bin/gh" ]]; then
+        echo
+        echo "Verify GitHub CLI:"
+        echo "  /opt/bin/gh --version"
     fi
     
     echo
@@ -662,6 +795,7 @@ main() {
     configure_environment
     update_package_lists
     install_default_packages
+    install_github_cli
     create_scheduler_task
     
     # Post-installation verification

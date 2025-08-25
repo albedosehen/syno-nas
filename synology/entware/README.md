@@ -8,10 +8,15 @@ Entware provides a lightweight package manager with thousands of Linux CLI tools
 Well, you get Entware, and the ability to install packages such as:
 
 - `jq` – JSON processor
-- `git` – version control
+- `git` – version control with HTTP support
+- `zsh` – advanced shell with features and plugins
 - `ripgrep (rg)` – fast recursive search
-- `htop` – process monitor
+- `tree` – directory tree viewer
+- `eza` – modern replacement for ls with colors and icons
+- `curl` – data transfer tool
+- `htop` – interactive process monitor
 - `tmux` – terminal multiplexer
+- `gh` – GitHub CLI (special installation method)
 
 ### Basic Installation
 
@@ -38,16 +43,16 @@ You can pass commands to the script for:
 
 ```bash
 # Dry run to preview changes
-sudo bash setup-entware-refactored.sh --dry-run
+sudo bash setup-entware.sh --dry-run
 
 # Verbose output
-sudo bash setup-entware-refactored.sh --verbose
+sudo bash setup-entware.sh --verbose
 
 # Custom package list
-sudo bash setup-entware-refactored.sh --packages "git htop nano"
+sudo bash setup-entware.sh --packages "git htop nano"
 
 # Skip automatic scheduler task creation
-sudo bash setup-entware-refactored.sh --no-scheduler
+sudo bash setup-entware.sh --no-scheduler
 ```
 
 ### Verification
@@ -58,6 +63,11 @@ After installation, verify the tools:
 /opt/bin/opkg --version
 /opt/bin/jq --version
 /opt/bin/git --version
+/opt/bin/rg --version
+/opt/bin/tree --version
+/opt/bin/eza --version
+/opt/bin/curl --version
+/opt/bin/gh --version  # GitHub CLI (if architecture supported)
 ```
 
 ## ⚙️ Configuration
@@ -84,6 +94,16 @@ export ENTWARE_INSTALL_PACKAGES=""
 # Force specific architecture
 export ENTWARE_ARCH="armv7sf-k3.2"
 ```
+
+### GitHub CLI Special Installation
+
+The GitHub CLI (`gh`) is installed using a special method that downloads the latest release directly from GitHub. This ensures you get the most recent version and supports multiple architectures:
+
+- **x86_64** → `amd64` binaries
+- **aarch64** → `arm64` binaries
+- **armv7l** → `armv6` binaries
+
+The installation automatically detects your architecture and downloads the appropriate binary. If your architecture is not supported, the GitHub CLI installation will be skipped with a warning.
 
 ## 🔧 Package Management
 
