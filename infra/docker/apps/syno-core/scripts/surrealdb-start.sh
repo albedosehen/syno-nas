@@ -7,7 +7,7 @@ done
 
 echo "SurrealDB keyvault secrets available, starting database..."
 SURREALDB_USERNAME=$(cat /keyvault/surrealdb/username)
-SURREALDB_PASS=$(cat /keyvault/surrealdb/password)
+SURREALDB_PASSWORD=$(cat /keyvault/surrealdb/password)
 SURREALDB_NS=$(cat /keyvault/surrealdb/namespace)
 SURREALDB_DB=$(cat /keyvault/surrealdb/database)
 
@@ -16,5 +16,5 @@ echo "Starting SurrealDB with user: $SURREALDB_USERNAME, namespace: $SURREALDB_N
 /surreal start \
   --bind "0.0.0.0:8000" \
   --user "$SURREALDB_USERNAME" \
-  --pass "$SURREALDB_PASS" \
+  --pass "$SURREALDB_PASSWORD" \
   file:/data/database.db

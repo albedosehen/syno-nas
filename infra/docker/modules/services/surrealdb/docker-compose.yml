@@ -45,7 +45,7 @@ services:
 
         # Read credentials from keyvault
         SURREALDB_USERNAME=$$(cat /keyvault/SURREALDB_USERNAME);
-        SURREALDB_PASS=$$(cat /keyvault/surrealdb_pass);
+        SURREALDB_PASSWORD=$$(cat /keyvault/surrealdb_pass);
         SURREALDB_NAMESPACE=$$(cat /keyvault/surrealdb_namespace || echo 'core');
         SURREALDB_DATABASE=$$(cat /keyvault/surrealdb_database || echo 'main');
 
@@ -53,7 +53,7 @@ services:
         /surreal start \
           --bind 0.0.0.0:8000 \
           --user "$${SURREALDB_USERNAME}" \
-          --pass "$${SURREALDB_PASS}" \
+          --pass "$${SURREALDB_PASSWORD}" \
           --strict \
           file:/data/database.db
 

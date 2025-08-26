@@ -116,7 +116,7 @@ docker compose up -d  # Uses main file with includes
 
 3. **Set secrets in Doppler dashboard:**
    - `PORTAINER_ADMIN_PASSWORD`
-   - `SURREALDB_PASS`
+   - `SURREALDB_PASSWORD`
    - `SURREALDB_USERNAME`
    - etc.
 
