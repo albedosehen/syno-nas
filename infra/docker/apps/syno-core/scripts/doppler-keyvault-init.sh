@@ -29,8 +29,8 @@ doppler run -- /bin/bash -c '
   #################
   # RWWWRSE PROXY #
   #################
-  printf "%s" "${WWW_DOMAINS:-}" > /keyvault/shared/rwwwrse_domains
-  printf "%s" "${WWW_BACKENDS:-}" > /keyvault/shared/rwwwrse_backends
+  printf "%s" "${RWWWRSE_DOMAINS:-}" > /keyvault/shared/rwwwrse_domains
+  printf "%s" "${RWWWRSE_BACKEND:-}" > /keyvault/shared/rwwwrse_backend
 
   ###############
   # PERMISSIONS #
