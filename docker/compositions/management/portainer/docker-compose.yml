@@ -1,17 +1,25 @@
 services:
   doppler-portainer:
       build: ../doppler
-      container_name: doppler
+      container_name: doppler-portainer
       environment:
         - DOPPLER_TOKEN=${DOPPLER_TOKEN}
       volumes:
         - portainer_secrets:/secrets
       command: >
-        sh -c "
-          doppler secrets download --no-file --format env > /tmp/env &&
-          source /tmp/env &&
-          echo -n \"$$PORTAINER_ADMIN_PASSWORD\" > /secrets/admin_password &&
-          echo -n \"$$PORTAINER_ADMIN_USERNAME\" > /secrets/admin_username &&
+        /bin/bash -c "
+          echo 'Starting Doppler secret sync...' &&
+          mkdir -p /secrets &&
+          chmod 755 /secrets &&
+          doppler run -- /bin/bash -c '
+            echo \"Creating admin password file...\" &&
+            echo -n \"\$PORTAINER_ADMIN_PASSWORD\" > /secrets/admin_password &&
+            echo -n \"\${PORTAINER_ADMIN_USERNAME:-admin}\" > /secrets/admin_username &&
+            chmod 644 /secrets/admin_password /secrets/admin_username &&
+            echo \"Secret files created successfully:\" &&
+            ls -la /secrets/
+          ' &&
+          echo 'Doppler sync complete. Keeping container alive...' &&
           tail -f /dev/null
         "
       restart: unless-stopped
@@ -57,11 +65,11 @@ services:
 
     # Health check
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${PORTAINER_PORT}:9000/"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9000/"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
     
     # Resource limits
     deploy:
