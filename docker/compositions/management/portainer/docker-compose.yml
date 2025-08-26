@@ -1,11 +1,34 @@
 services:
+  doppler-portainer:
+      build: ../doppler
+      container_name: doppler
+      environment:
+        - DOPPLER_TOKEN=${DOPPLER_TOKEN}
+      volumes:
+        - portainer_secrets:/secrets
+      command: >
+        sh -c "
+          doppler secrets download --no-file --format env > /tmp/env &&
+          source /tmp/env &&
+          echo -n \"$$PORTAINER_ADMIN_PASSWORD\" > /secrets/admin_password &&
+          echo -n \"$$PORTAINER_ADMIN_USERNAME\" > /secrets/admin_username &&
+          tail -f /dev/null
+        "
+      restart: unless-stopped
+      networks:
+        - portainer_network
+
   portainer:
     image: portainer/portainer-ce:lts
     container_name: portainer
     restart: unless-stopped
     
     # Security and local network access only
-    command: -H unix:///var/run/docker.sock
+    command:
+      - -H
+      - unix:///var/run/docker.sock
+      - --admin-password-file
+      - /run/secrets/admin_password
     
     # Environment variables
     environment:
@@ -26,10 +49,15 @@ services:
       - ${PORTAINER_DATA_PATH:-./data}:/data
       # Optional: Additional Docker volumes access
       - /volume1/docker:/var/lib/docker/volumes:ro
-    
+      # Mount secrets from Doppler
+      - portainer_secrets:/run/secrets:ro
+
+    depends_on:
+      - doppler-portainer
+
     # Health check
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9000/"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${PORTAINER_PORT}:9000/"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -63,4 +91,7 @@ networks:
 volumes:
   portainer_data:
     name: portainer_data
+    driver: local
+  portainer_secrets:
+    name: portainer_secrets
     driver: local
