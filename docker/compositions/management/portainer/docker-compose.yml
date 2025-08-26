@@ -63,14 +63,6 @@ services:
 
     depends_on:
       - doppler-portainer
-
-    # Health check
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
     
     # Resource limits
     deploy:
