@@ -15,38 +15,7 @@ include:
 # ===========================================
 
 x-global-labels: &global-labels
-  - "com.synology.stack=syno-core"
-  - "com.synology.version=1.0.0-modular"
-  - "com.synology.architecture=modular"
-  - "com.synology.managed-by=docker"
-
-services:
-  doppler-core:
-    labels:
-      <<: *global-labels
-  portainer:
-    depends_on:
-      doppler-core:
-        condition: service_healthy
-    labels:
-      <<: *global-labels
-
-  surrealdb:
-    depends_on:
-      doppler-core:
-        condition: service_healthy
-    labels:
-      <<: *global-labels
-
-  azurite:
-    labels:
-      <<: *global-labels
-
-  azure-cli:
-    depends_on:
-      doppler-core:
-        condition: service_healthy
-      azurite:
-        condition: service_healthy
-    labels:
-      <<: *global-labels
+  com.synology.stack: "syno-core"
+  com.synology.version: "1.0.0-modular"
+  com.synology.architecture: "modular"
+  com.synology.managed-by: "docker"

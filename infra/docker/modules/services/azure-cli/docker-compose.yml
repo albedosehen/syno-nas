@@ -65,13 +65,3 @@ services:
           echo 'Starting Azure CLI without auto-initialization...';
         fi;
         tail -f /dev/null
-
-networks:
-  syno-core-network:
-    external: true
-
-volumes:
-  syno_core_keyvault:
-    external: true
-  syno_core_logs:
-    external: true
