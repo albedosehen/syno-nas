@@ -1,0 +1,24 @@
+# ===========================================
+# CORE SERVICES - MAIN ORCHESTRATION
+# ===========================================
+# This file orchestrates all modular services together
+# For individual service management, use the specific compose files
+
+# Include all modular services
+include:
+  - docker-compose.base.yml
+  - docker-compose.secrets.yml
+  - docker-compose.database.yml
+  - docker-compose.management.yml
+
+# Override dependencies for proper startup order
+services:
+  surrealdb:
+    depends_on:
+      doppler:
+        condition: service_healthy
+        
+  portainer:
+    depends_on:
+      doppler:
+        condition: service_healthy

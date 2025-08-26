@@ -29,15 +29,20 @@ Before contributing, ensure you have:
 
 1. **Fork the repository** to your GitHub account
 2. **Clone your fork** to your development environment:
+
    ```bash
    git clone https://github.com/your-username/syno-nas.git
    cd syno-nas
    ```
+
 3. **Set up upstream remote**:
+
    ```bash
    git remote add upstream https://github.com/original-owner/syno-nas.git
    ```
+
 4. **Test existing infrastructure**:
+
    ```bash
    cd docker/compositions/management/portainer
    cp .env.example .env
@@ -48,6 +53,7 @@ Before contributing, ensure you have:
 ### Project Structure Understanding
 
 Familiarize yourself with the project structure:
+
 - [`docker/compositions/`](docker/compositions/) - Service definitions by category
 - [`docker/dockerfiles/`](docker/dockerfiles/) - Custom Docker images
 - [`docker/scripts/`](docker/scripts/) - Automation and utility scripts
@@ -74,17 +80,20 @@ Before implementation, consider:
 ### Step 2: Create Service Structure
 
 1. **Navigate to appropriate category**:
+
    ```bash
    cd docker/compositions/[category]
    ```
 
 2. **Create service directory**:
+
    ```bash
    mkdir [service-name]
    cd [service-name]
    ```
 
 3. **Copy service template files**:
+
    ```bash
    # Copy and customize the template files from docs/SERVICE_TEMPLATE.md
    # Create the required files:
@@ -297,6 +306,7 @@ All services must include:
 ### Branch Management
 
 1. **Create feature branch**:
+
    ```bash
    git checkout -b feature/add-[service-name]
    ```
@@ -309,7 +319,7 @@ All services must include:
 
 Use clear, descriptive commit messages:
 
-```
+```plaintext
 feat(media): Add Plex Media Server service
 
 - Implement Docker Compose configuration
@@ -322,6 +332,7 @@ Closes #123
 ```
 
 Commit message format:
+
 - `feat(category): Description` for new features
 - `fix(service): Description` for bug fixes
 - `docs(area): Description` for documentation
@@ -332,6 +343,7 @@ Commit message format:
 #### Pre-submission Testing
 
 1. **Clean Environment Testing**:
+
    ```bash
    # Test with fresh environment
    docker system prune -a
@@ -342,6 +354,7 @@ Commit message format:
    ```
 
 2. **Health Verification**:
+
    ```bash
    # Verify service health
    docker-compose ps
@@ -350,6 +363,7 @@ Commit message format:
    ```
 
 3. **Backup Testing**:
+
    ```bash
    # Test backup functionality
    ./backup.sh
@@ -357,6 +371,7 @@ Commit message format:
    ```
 
 4. **Resource Monitoring**:
+
    ```bash
    # Monitor resource usage
    docker stats [container-name]

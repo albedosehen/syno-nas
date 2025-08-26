@@ -1,8 +1,0 @@
-services:
-  web:
-    build: .
-    image: doppler-test-alpine
-    container_name: doppler
-    init: true
-    environment:
-      - DOPPLER_TOKEN

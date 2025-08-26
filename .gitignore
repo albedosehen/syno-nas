@@ -2,25 +2,12 @@
 *
 
 ## Allowed Directories
-!docker/
-!docker/**
-
-!docs
-!docs/**
-
-!synology/
-!synology/**
-
-!windows/
-!windows/**
+!infra/
+!infra/**
 
 ## Allowed Files
 !.gitignore
-!*.env.template
 !README.md
-!docker-compose.yml
-!justfile
-!tasks.ps1
 
 # Explicit ignore
 *.env

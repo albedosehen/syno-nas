@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
+
 - Media services: Plex, Jellyfin, Sonarr, Radarr, Lidarr, Prowlarr
 - Productivity services: NextCloud, OnlyOffice, Bookstack, Gitea
 - Networking services: WireGuard, Pi-hole, Nginx Proxy Manager, Traefik
@@ -22,12 +23,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added - Initial Release
 
 #### Core Infrastructure
+
 - **Project Structure**: Organized directory layout with categories for management, media, productivity, and networking services
 - **Docker Compositions**: Standardized Docker Compose service definitions with Synology NAS optimizations
 - **Service Templates**: Comprehensive templates for adding new services consistently
 - **Automation Scripts**: Foundation for deployment, backup, and maintenance automation
 
 #### Management Services
+
 - **Portainer Community Edition**: Complete Docker container management solution
   - Web-based interface for container, image, and volume management
   - Local network security configuration
@@ -36,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Comprehensive documentation with troubleshooting guide
 
 #### Documentation
+
 - **Main README**: Comprehensive project overview with quick start guide
 - **Setup Guide** (`docs/SETUP.md`): Detailed installation and configuration instructions
 - **Security Guide** (`docs/SECURITY.md`): Comprehensive security best practices and hardening
@@ -45,18 +49,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Directory READMEs**: Consistent documentation across all project directories
 
 #### Configuration Standards
+
 - **Environment Variables**: Standardized naming conventions and required variables
 - **Security Defaults**: Local network only access, resource limits, health checks
 - **Volume Management**: Synology NAS-optimized volume mappings and permissions
 - **Network Configuration**: Isolated networks and proper firewall integration
 
 #### Deployment Automation
+
 - **Service Deployment**: Automated deployment scripts with error handling and verification
 - **Backup Procedures**: Automated backup scripts with integrity verification and retention policies
 - **Health Monitoring**: Container health checks and resource monitoring
 - **Update Management**: Framework for safe service updates with rollback capabilities
 
 #### Security Features
+
 - **Network Isolation**: Services restricted to local network access by default
 - **Resource Limits**: Memory and CPU limits to prevent resource exhaustion
 - **Permission Management**: Proper PUID/PGID handling for Synology NAS file permissions
@@ -64,6 +71,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Firewall Integration**: DSM firewall configuration guidance and best practices
 
 #### Synology Optimizations
+
 - **DSM 7.2+ Compatibility**: Optimized for latest Synology DSM features
 - **Container Manager Integration**: Support for both CLI and GUI deployment methods
 - **Volume Path Handling**: Proper volume mappings for Synology storage structure
@@ -72,30 +80,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Infrastructure Highlights
 
-#### Project Organization
-```
-syno-nas/
-├── README.md                     # Main project documentation
-├── CONTRIBUTING.md               # Contribution guidelines
-├── CHANGELOG.md                  # This file
-├── docker-compose.yml           # Optional root compose file
-├── docs/                        # Comprehensive documentation
-│   ├── SETUP.md                # Setup and installation guide
-│   ├── SECURITY.md             # Security best practices
-│   ├── TROUBLESHOOTING.md      # Issue resolution guide
-│   └── SERVICE_TEMPLATE.md     # Service development template
-└── docker/                     # Docker infrastructure
-    ├── compositions/           # Service definitions by category
-    │   ├── management/        # Docker management tools
-    │   ├── media/            # Media services (planned)
-    │   ├── productivity/     # Productivity tools (planned)
-    │   └── networking/       # Network services (planned)
-    ├── dockerfiles/          # Custom Docker images
-    └── scripts/              # Automation and utility scripts
-```
-
 #### Service Standards
+
 Each service includes:
+
 - Comprehensive README.md with installation, configuration, and troubleshooting
 - Docker Compose configuration with Synology optimizations
 - Environment template (.env.example) with detailed documentation
@@ -105,6 +93,7 @@ Each service includes:
 - Security configuration with local network access only
 
 #### Documentation Quality
+
 - **Step-by-step instructions** for all procedures
 - **Real-world examples** and practical use cases
 - **Troubleshooting guidance** for common issues
@@ -114,18 +103,21 @@ Each service includes:
 ### Technical Specifications
 
 #### Compatibility
+
 - **Synology DSM**: 7.2 or later
 - **Docker**: 20.10 or later
 - **Docker Compose**: 2.0 or later
 - **Hardware**: Most modern Synology NAS models
 
 #### Service Categories Established
+
 - **Management**: Essential Docker management and monitoring tools
 - **Media**: Media servers and automation tools (*arr services)
 - **Productivity**: Collaboration and productivity applications
 - **Networking**: Network infrastructure and security services
 
 #### Security Implementation
+
 - **Default Security Posture**: Local network only access
 - **Resource Protection**: Memory and CPU limits on all services
 - **Data Protection**: Proper volume permissions and backup procedures
@@ -135,18 +127,21 @@ Each service includes:
 ### Development Standards
 
 #### Code Quality
+
 - **Consistent Formatting**: Standardized YAML and shell script formatting
 - **Error Handling**: Comprehensive error handling in all scripts
 - **Logging**: Structured logging with color-coded output
 - **Documentation**: Inline documentation and comprehensive READMEs
 
 #### Testing Requirements
+
 - **Synology Hardware Testing**: All services tested on actual hardware
 - **Multi-Version Compatibility**: Tested across DSM and Docker versions
 - **Resource Constraint Testing**: Verified under limited resource conditions
 - **Integration Testing**: Service interactions and network isolation verified
 
 #### Maintenance Framework
+
 - **Update Procedures**: Safe update workflows with health verification
 - **Backup Strategies**: Automated backup with restore testing
 - **Monitoring Integration**: Health checks and resource monitoring
@@ -155,6 +150,7 @@ Each service includes:
 ## Version History Summary
 
 ### v1.0.0 (2024-12-16) - Foundation Release
+
 - Complete project infrastructure and documentation
 - Portainer service implementation as reference
 - Comprehensive security and setup documentation
@@ -162,6 +158,7 @@ Each service includes:
 - Contribution guidelines and community framework
 
 ### Pre-1.0 Development
+
 - Project architecture and design phase
 - Research on Synology DSM 7.2 Docker best practices
 - Security framework design and implementation
@@ -171,23 +168,28 @@ Each service includes:
 ## Maintenance Information
 
 ### Release Schedule
+
 - **Major Releases**: Significant new features or infrastructure changes
 - **Minor Releases**: New services, enhancements, and improvements
 - **Patch Releases**: Bug fixes, security updates, and documentation improvements
 
 ### Versioning Strategy
+
 - **Major (X.0.0)**: Breaking changes, major infrastructure updates
 - **Minor (X.Y.0)**: New services, backward-compatible improvements
 - **Patch (X.Y.Z)**: Bug fixes, security patches, documentation updates
 
 ### Update Notifications
+
 Users are encouraged to:
+
 - Watch the repository for release notifications
 - Review changelog before updating
 - Test updates in non-production environments
 - Follow security advisories and patches
 
 ### Backward Compatibility
+
 - **Configuration Files**: Maintain backward compatibility when possible
 - **Service APIs**: Stable service interfaces across minor versions
 - **Migration Guides**: Provided for breaking changes
@@ -196,6 +198,7 @@ Users are encouraged to:
 ## Contributing
 
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for:
+
 - Guidelines for adding new services
 - Code quality standards
 - Testing requirements
@@ -205,6 +208,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for:
 ### Recognition
 
 Special thanks to contributors who have helped shape this project:
+
 - Community feedback on service priorities
 - Testing and validation across different hardware
 - Documentation improvements and corrections

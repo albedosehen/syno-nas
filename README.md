@@ -24,6 +24,7 @@ This project offers a generalized framework that can be used by anyone with a Sy
 ### 1. Project Setup
 
 1. **Clone or download this project** to your Synology NAS:
+
    ```bash
    # SSH into your NAS
    ssh admin@your-nas-ip
@@ -37,6 +38,7 @@ This project offers a generalized framework that can be used by anyone with a Sy
    ```
 
 2. **Set proper permissions**:
+
    ```bash
    # Make scripts executable
    chmod +x docker/scripts/*.sh
@@ -74,7 +76,7 @@ Browse the [`docker/compositions/`](docker/compositions/) directory to see avail
 
 ## 📁 Project Structure
 
-```
+```plaintext
 syno-nas/
 ├── README.md                          # This file - main project documentation
 ├── CONTRIBUTING.md                    # Guide for adding new services
@@ -122,7 +124,7 @@ syno-nas/
 
 Each service follows a consistent structure:
 
-```
+```plaintext
 service-name/
 ├── README.md              # Comprehensive service documentation
 ├── docker-compose.yml     # Service definition
@@ -216,6 +218,7 @@ docker-compose pull && docker-compose up -d
 ### Common Issues
 
 #### Port Conflicts
+
 ```bash
 # Check what's using a port
 sudo netstat -tlnp | grep :PORT_NUMBER
@@ -224,6 +227,7 @@ sudo netstat -tlnp | grep :PORT_NUMBER
 ```
 
 #### Permission Problems
+
 ```bash
 # Fix ownership (replace with your PUID:PGID)
 sudo chown -R 1000:1000 /path/to/service/data
@@ -231,6 +235,7 @@ sudo chmod -R 755 /path/to/service/data
 ```
 
 #### Container Not Starting
+
 ```bash
 # Check container logs
 docker-compose logs service-name

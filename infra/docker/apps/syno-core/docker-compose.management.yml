@@ -1,0 +1,70 @@
+# ===========================================
+# MANAGEMENT SERVICES
+# ===========================================
+# Portainer container management UI
+
+services:
+  portainer:
+    image: portainer/portainer-ce:lts
+    container_name: core-portainer
+    restart: unless-stopped
+    
+    # Service dependencies - assumes doppler is running
+    depends_on:
+      - doppler
+    
+    # Use external script for startup logic
+    command: ["/bin/bash", "/scripts/portainer-start.sh"]
+    
+    # Environment variables
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+      
+    # Port mapping - local network access only
+    ports:
+      - "${PORTAINER_PORT:-9000}:9000"
+      - "${PORTAINER_EDGE_PORT:-8000}:8000"
+    
+    # Volume mappings optimized for Synology NAS
+    volumes:
+      # Docker socket for container management
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Portainer data persistence
+      - ${PORTAINER_DATA_PATH:-/volume1/docker/core/portainer/data}:/data
+      # Docker volumes access
+      - /volume1/docker:/var/lib/docker/volumes:ro
+      # Mount keyvault from Doppler
+      - core_keyvault:/keyvault:ro
+      # Mount scripts
+      - ./scripts:/scripts:ro
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: ${PORTAINER_MEMORY_LIMIT:-512M}
+        reservations:
+          memory: ${PORTAINER_MEMORY_RESERVATION:-256M}
+    
+    # Network configuration
+    networks:
+      - core-network
+    
+    # Labels for organization and management
+    labels:
+      - "traefik.enable=false"
+      - "com.synology.core.portainer.description=Docker container management UI"
+      - "com.synology.core.portainer.category=management"
+
+# Use external networks and volumes
+networks:
+  core-network:
+    external: true
+
+volumes:
+  core_keyvault:
+    external: true
+  core_portainer_data:
+    external: true
