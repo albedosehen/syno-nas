@@ -1,8 +1,6 @@
 # ===========================================
 # SURREALDB SERVICE
 # ===========================================
-# Multi-model database service using shared infrastructure
-# Integrated with centralized Doppler secrets management
 
 services:
   surrealdb:

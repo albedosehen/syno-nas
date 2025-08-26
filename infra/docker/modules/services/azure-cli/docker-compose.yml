@@ -1,8 +1,6 @@
 # ===========================================
 # AZURE CLI SERVICE
 # ===========================================
-# Azure CLI with azurite integration for Azure service management
-# Includes initialization capabilities for azurite setup
 
 services:
   azure-cli:

@@ -1,8 +1,6 @@
 # ===========================================
 # CODE INDEXING SERVICE
 # ===========================================
-# AI-powered code indexing using Qdrant vector database and Ollama
-# Provides semantic search and analysis capabilities for codebases
 
 services:
   qdrant:

@@ -1,8 +1,6 @@
 # ===========================================
 # PORTAINER SERVICE
 # ===========================================
-# Docker container management UI using shared infrastructure
-# Integrated with centralized Doppler secrets management
 
 services:
   portainer:

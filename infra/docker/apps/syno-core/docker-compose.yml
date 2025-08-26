@@ -1,8 +1,6 @@
 # ===========================================
 # SYNO-CORE - MODULAR ORCHESTRATION
 # ===========================================
-# Main orchestration file that composes services from shared infrastructure and modules
-# This replaces the previous monolithic approach with a true modular architecture
 
 include:
   - ../../shared/infrastructure.yml

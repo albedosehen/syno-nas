@@ -1,8 +1,6 @@
 # ===========================================
 # AZURITE SERVICE
 # ===========================================
-# Azure Storage Emulator for local development and testing
-# Provides blob, queue, and table storage endpoints
 
 services:
   azurite:
