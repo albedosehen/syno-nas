@@ -15,8 +15,8 @@ services:
           chmod 755 /secrets
           doppler run -- /bin/bash -c '
             echo "Creating admin password file..."
-            echo -n "$PORTAINER_ADMIN_PASSWORD" > /secrets/admin_password
-            echo -n "${PORTAINER_ADMIN_USERNAME:-admin}" > /secrets/admin_username
+            echo -n "$$PORTAINER_ADMIN_PASSWORD" > /secrets/admin_password
+            echo -n "$${PORTAINER_ADMIN_USERNAME:-admin}" > /secrets/admin_username
             chmod 644 /secrets/admin_password /secrets/admin_username
             echo "Secret files created successfully:"
             ls -la /secrets/
