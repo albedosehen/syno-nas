@@ -1,12 +1,11 @@
 # ===========================================
 # BASE INFRASTRUCTURE
 # ===========================================
-# Shared networks, volumes, and base configuration
 
 networks:
-  core-network:
+  syno-core-network:
     driver: bridge
-    name: core-network
+    name: syno-core-network
     driver_opts:
       com.docker.network.bridge.name: core-bridge
     ipam:
@@ -15,25 +14,22 @@ networks:
           gateway: 172.20.0.1
 
 volumes:
-  # Portainer data volume
-  core_portainer_data:
-    name: core_portainer_data
+  syno_core_portainer_data:
+    name: syno_core_portainer_data
     driver: local
     driver_opts:
       type: none
       o: bind
       device: ${PORTAINER_DATA_PATH:-/volume1/docker/core/portainer/data}
-  
-  # SurrealDB data volume
-  core_surrealdb_data:
-    name: core_surrealdb_data
+
+  syno_core_surrealdb_data:
+    name: syno_core_surrealdb_data
     driver: local
     driver_opts:
       type: none
       o: bind
       device: ${SURREALDB_DATA_PATH:-/volume1/docker/core/surrealdb/data}
-  
-  # Core keyvault volume for all services
-  core_keyvault:
-    name: core_keyvault
+
+  syno_core_keyvault:
+    name: syno_core_keyvault
     driver: local

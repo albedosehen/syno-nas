@@ -1,0 +1,122 @@
+# ===========================================
+# CODE INDEXING SERVICE
+# ===========================================
+# AI-powered code indexing using Qdrant vector database and Ollama
+# Provides semantic search and analysis capabilities for codebases
+
+services:
+  qdrant:
+    build:
+      context: ../../components/qdrant
+      dockerfile: Dockerfile
+    image: synology-nas/qdrant:latest
+    container_name: qdrant
+    restart: unless-stopped
+
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+      - LOCAL_NETWORK_ONLY=${LOCAL_NETWORK_ONLY:-true}
+      # Qdrant will read API key from keyvault if available
+      - QDRANT__SERVICE__API_KEY_FILE=/keyvault/qdrant_api_key
+
+    ports:
+      - "${QDRANT_PORT:-6333}:6333"
+
+    volumes:
+      # Qdrant data persistence
+      - ${QDRANT_DATA_PATH:-./data/qdrant}:/qdrant/storage
+      # Shared keyvault for secrets
+      - syno_core_keyvault:/keyvault:ro
+      # Shared logs
+      - syno_core_logs:/logs
+
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:6333/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    deploy:
+      resources:
+        limits:
+          memory: ${QDRANT_MEMORY_LIMIT:-2G}
+        reservations:
+          memory: ${QDRANT_MEMORY_RESERVATION:-1G}
+
+    networks:
+      - syno-core-network
+
+    labels:
+      - "traefik.enable=false"
+      - "com.synology.qdrant.description=Vector database for AI embeddings"
+      - "com.synology.qdrant.category=database"
+      - "com.synology.qdrant.scope=ai"
+
+  ollama:
+    build:
+      context: ../../components/ollama
+      dockerfile: Dockerfile
+    image: synology-nas/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+
+    depends_on:
+      qdrant:
+        condition: service_healthy
+
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+      - LOCAL_NETWORK_ONLY=${LOCAL_NETWORK_ONLY:-true}
+      - OLLAMA_ORIGINS=${OLLAMA_ORIGINS:-*}
+      - OLLAMA_HOST=${OLLAMA_HOST:-0.0.0.0}
+
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+
+    volumes:
+      # Ollama model storage
+      - ${OLLAMA_DATA_PATH:-./data/ollama}:/root/.ollama
+      # Shared keyvault for secrets
+      - syno_core_keyvault:/keyvault:ro
+      # Shared logs
+      - syno_core_logs:/logs
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:11434/api/version || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    deploy:
+      resources:
+        limits:
+          memory: ${OLLAMA_MEMORY_LIMIT:-4G}
+        reservations:
+          memory: ${OLLAMA_MEMORY_RESERVATION:-2G}
+
+    networks:
+      - syno-core-network
+
+    labels:
+      - "traefik.enable=false"
+      - "com.synology.ollama.description=Local LLM inference engine"
+      - "com.synology.ollama.category=ai"
+      - "com.synology.ollama.scope=inference"
+      - "com.synology.ollama.gpu=optional"
+
+networks:
+  syno-core-network:
+    external: true
+
+volumes:
+  syno_core_keyvault:
+    external: true
+  syno_core_logs:
+    external: true

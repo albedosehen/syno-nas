@@ -7,7 +7,7 @@ This directory contains the core infrastructure services for the Synology NAS ho
 ### Services
 
 - **Doppler**: Centralized secrets management via keyvault
-- **SurrealDB**: Multi-model database with Doppler-managed credentials  
+- **SurrealDB**: Multi-model database with Doppler-managed credentials
 - **Portainer**: Container management UI with secure authentication
 
 ### Modular Design
@@ -117,7 +117,7 @@ docker compose up -d  # Uses main file with includes
 3. **Set secrets in Doppler dashboard:**
    - `PORTAINER_ADMIN_PASSWORD`
    - `SURREALDB_PASS`
-   - `SURREALDB_USER`
+   - `SURREALDB_USERNAME`
    - etc.
 
 4. **Deploy core services:**
@@ -162,7 +162,7 @@ myservice:
     doppler:
       condition: service_healthy
   volumes:
-    - core_keyvault:/keyvault:ro
+    - syno_core_keyvault:/keyvault:ro
     - ./scripts:/scripts:ro
   command: ["/bin/bash", "/scripts/myservice-start.sh"]
 ```
@@ -221,7 +221,7 @@ Each service includes health checks appropriate to their function:
 ### Services Won't Start
 
 1. Check Doppler service health: `docker compose ps doppler`
-2. Verify secrets in keyvault: `docker exec core-doppler ls -la /keyvault/`
+2. Verify secrets in keyvault: `docker exec syno-core-doppler ls -la /keyvault/`
 3. Check service logs: `docker compose logs servicename`
 
 ### Adding Secrets

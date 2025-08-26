@@ -1,88 +1,76 @@
-services:
-  doppler-portainer:
-      build: ../doppler
-      container_name: doppler-portainer
-      environment:
-        - DOPPLER_TOKEN=${DOPPLER_TOKEN}
-      volumes:
-        - vault:/vault
-      command:
-        - /bin/bash
-        - -c
-        - |
-          echo 'Starting Doppler secret sync...'
-          mkdir -p /vault
-          chmod 755 /vault
-          doppler run -- /bin/bash -c 'printf "%s" "$$PORTAINER_ADMIN_PASSWORD" > /vault/portainer_admin_password'
-          echo 'Doppler sync complete. Keeping container alive...'
-          tail -f /dev/null
-      restart: unless-stopped
-      networks:
-        - portainer_network
+# ===========================================
+# PORTAINER SERVICE
+# ===========================================
+# Docker container management UI using shared infrastructure
+# Integrated with centralized Doppler secrets management
 
+services:
   portainer:
     image: portainer/portainer-ce:lts
     container_name: portainer
     restart: unless-stopped
-    
+
+    depends_on:
+      doppler-core:
+        condition: service_healthy
+
     command:
       - -H
-      # Security and local network access only
       - unix:///var/run/docker.sock
-      # Portainer Secret
       - --admin-password-file
-      - /run/vault/portainer_admin_password
-    
-    # Environment variables
+      - /keyvault/portainer_admin_password
+
     environment:
       - PUID=${PUID:-1000}
       - PGID=${PGID:-1000}
       - TZ=${TZ:-UTC}
-      
-    # Port mapping - local network access only
+      - LOCAL_NETWORK_ONLY=${LOCAL_NETWORK_ONLY:-true}
+
     ports:
       - "${PORTAINER_PORT:-9000}:9000"
       - "${PORTAINER_EDGE_PORT:-8000}:8000"
-    
-    # Volume mappings optimized for Synology NAS
+
     volumes:
       # Docker socket for container management
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Portainer data persistence
       - ${PORTAINER_DATA_PATH:-./data}:/data
-      - /volume1/docker:/var/lib/docker/volumes:ro
-      - vault:/run/vault:ro
+      # Docker volumes access for Synology
+      - ${SYNOLOGY_DOCKER_PATH:-/volume1/docker}:/var/lib/docker/volumes:ro
+      # Shared keyvault for secrets
+      - syno_core_keyvault:/keyvault:ro
+      # Shared logs
+      - syno_core_logs:/logs
 
-    depends_on:
-      - doppler-portainer
-    
-    # Resource limits
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/api/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: ${PORTAINER_MEMORY_LIMIT:-512M}
         reservations:
-          memory: 256M
-    
-    # Network configuration
+          memory: ${PORTAINER_MEMORY_RESERVATION:-256M}
+
     networks:
-      - portainer_network
+      - syno-core-network
 
     labels:
       - "traefik.enable=false"
       - "com.synology.portainer.description=Docker container management UI"
       - "com.synology.portainer.category=management"
+      - "com.synology.portainer.scope=core"
 
-# Networks
 networks:
-  portainer_network:
-    driver: bridge
-    name: portainer_network
+  syno-core-network:
+    external: true
 
-# Volumes
 volumes:
-  data:
-    name: portainer_data
-    driver: local
-  vault:
-    name: vault
-    driver: local
+  syno_core_keyvault:
+    external: true
+  syno_core_logs:
+    external: true

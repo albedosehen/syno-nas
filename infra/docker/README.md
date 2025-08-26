@@ -4,7 +4,7 @@ This directory contains the complete Docker infrastructure for the Synology NAS 
 
 ## Directory Structure
 
-```
+```plaintext
 docker/
 ├── README.md                    # This file - Docker infrastructure overview
 ├── compositions/                # Service definitions organized by category
@@ -37,6 +37,7 @@ Custom Docker images and build contexts for services that require specialized co
 ### Scripts Directory (`scripts/`)
 
 Automation and utility scripts for managing the Docker environment, including:
+
 - Bulk operations across multiple services
 - Maintenance and cleanup tasks
 - Monitoring and health checks
@@ -47,6 +48,7 @@ Automation and utility scripts for managing the Docker environment, including:
 ### Quick Start
 
 1. **Deploy Portainer** (recommended first step):
+
    ```bash
    cd compositions/management/portainer
    cp .env.example .env
@@ -55,11 +57,13 @@ Automation and utility scripts for managing the Docker environment, including:
    ```
 
 2. **Access Portainer Web Interface**:
-   ```
+
+   ```plaintext
    http://your-nas-ip:9000
    ```
 
 3. **Browse Available Services**:
+
    ```bash
    find compositions/ -name "docker-compose.yml" -printf "%h\n" | sort
    ```
@@ -67,6 +71,7 @@ Automation and utility scripts for managing the Docker environment, including:
 ### Service Management
 
 Each service includes:
+
 - **README.md**: Comprehensive documentation
 - **docker-compose.yml**: Service definition
 - **.env.example**: Configuration template
@@ -78,6 +83,7 @@ Each service includes:
 ### Environment Variables
 
 All services use consistent environment variable naming:
+
 - `PUID`/`PGID`: User and group IDs for file permissions
 - `TZ`: Timezone configuration
 - `[SERVICE]_PORT`: Service-specific port mappings
@@ -190,16 +196,19 @@ journalctl -u docker -f
 ## Security Considerations
 
 ### Network Security
+
 - Services configured for local network access only
 - Firewall rules restrict external access
 - Custom networks isolate service communication
 
 ### Data Protection
+
 - Regular backup procedures for all services
 - Proper file permissions and ownership
 - Encrypted storage recommendations for sensitive data
 
 ### Access Control
+
 - Strong authentication requirements
 - Role-based access where supported
 - Regular security updates for container images
@@ -217,6 +226,7 @@ This Docker infrastructure is optimized for Synology NAS systems:
 ## Support and Documentation
 
 ### Project Documentation
+
 - [Main Project README](../README.md)
 - [Setup Guide](../docs/SETUP.md)
 - [Security Best Practices](../docs/SECURITY.md)
@@ -225,7 +235,9 @@ This Docker infrastructure is optimized for Synology NAS systems:
 - [Contributing Guidelines](../CONTRIBUTING.md)
 
 ### Service-Specific Documentation
+
 Each service includes detailed documentation in its respective directory:
+
 - **Installation Instructions**: Step-by-step deployment
 - **Configuration Guide**: Environment variable explanations
 - **Troubleshooting**: Service-specific issues and solutions

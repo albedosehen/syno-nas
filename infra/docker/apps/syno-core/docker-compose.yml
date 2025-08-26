@@ -1,24 +1,54 @@
 # ===========================================
-# CORE SERVICES - MAIN ORCHESTRATION
+# SYNO-CORE - MODULAR ORCHESTRATION
 # ===========================================
-# This file orchestrates all modular services together
-# For individual service management, use the specific compose files
+# Main orchestration file that composes services from shared infrastructure and modules
+# This replaces the previous monolithic approach with a true modular architecture
 
-# Include all modular services
 include:
-  - docker-compose.base.yml
-  - docker-compose.secrets.yml
-  - docker-compose.database.yml
-  - docker-compose.management.yml
+  - ../../shared/infrastructure.yml
+  - ../../shared/secrets.yml
+  - ../../modules/services/portainer/docker-compose.yml
+  - ../../modules/services/surrealdb/docker-compose.yml
+  - ../../modules/services/azurite/docker-compose.yml
+  - ../../modules/services/azure-cli/docker-compose.yml
 
-# Override dependencies for proper startup order
+# ===========================================
+# SERVICE DEPENDENCY AND CONFIGURATION OVERRIDES
+# ===========================================
+
+x-global-labels: &global-labels
+  - "com.synology.stack=syno-core"
+  - "com.synology.version=1.0.0-modular"
+  - "com.synology.architecture=modular"
+  - "com.synology.managed-by=docker"
+
 services:
-  surrealdb:
-    depends_on:
-      doppler:
-        condition: service_healthy
-        
+  doppler-core:
+    labels:
+      <<: *global-labels
   portainer:
     depends_on:
-      doppler:
+      doppler-core:
         condition: service_healthy
+    labels:
+      <<: *global-labels
+
+  surrealdb:
+    depends_on:
+      doppler-core:
+        condition: service_healthy
+    labels:
+      <<: *global-labels
+
+  azurite:
+    labels:
+      <<: *global-labels
+
+  azure-cli:
+    depends_on:
+      doppler-core:
+        condition: service_healthy
+      azurite:
+        condition: service_healthy
+    labels:
+      <<: *global-labels

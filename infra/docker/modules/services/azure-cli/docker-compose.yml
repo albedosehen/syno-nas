@@ -1,0 +1,79 @@
+# ===========================================
+# AZURE CLI SERVICE
+# ===========================================
+# Azure CLI with azurite integration for Azure service management
+# Includes initialization capabilities for azurite setup
+
+services:
+  azure-cli:
+    build:
+      context: ../../components/azure_cli
+      dockerfile: Dockerfile
+    image: synology-nas/azure-cli:latest
+    container_name: azure-cli
+    restart: unless-stopped
+
+    depends_on:
+      azurite:
+        condition: service_healthy
+
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+      - AZURITE_SERVICE_NAME=${AZURITE_SERVICE_NAME:-azurite}
+      - AZURITE_ACCOUNTS=${AZURITE_ACCOUNTS:-synology:C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==}
+      - AZURITE_BLOB_PORT=${AZURITE_BLOB_PORT:-10000}
+      - AZURITE_QUEUE_PORT=${AZURITE_QUEUE_PORT:-10001}
+      - AZURITE_TABLE_PORT=${AZURITE_TABLE_PORT:-10002}
+      - AZURE_CLI_AUTO_INIT=${AZURE_CLI_AUTO_INIT:-true}
+
+    volumes:
+      - ${AZURE_CLI_DATA_PATH:-./data}:/data
+      - ../../components/azure_cli/scripts:/scripts:ro
+      - syno_core_keyvault:/keyvault:ro
+      - syno_core_logs:/logs
+
+    healthcheck:
+      test: ["CMD", "az", "--version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    deploy:
+      resources:
+        limits:
+          memory: ${AZURE_CLI_MEMORY_LIMIT:-512M}
+        reservations:
+          memory: ${AZURE_CLI_MEMORY_RESERVATION:-256M}
+
+    networks:
+      - syno-core-network
+
+    labels:
+      - "com.synology.azure-cli.description=Azure CLI with azurite integration"
+      - "com.synology.azure-cli.category=tools"
+      - "com.synology.azure-cli.depends=azurite"
+
+    command:
+      - /bin/bash
+      - -c
+      - |
+        if [ "$${AZURE_CLI_AUTO_INIT}" = "true" ]; then
+          echo 'Starting Azure CLI with auto-initialization...';
+          /scripts/init_azurite.sh;
+        else
+          echo 'Starting Azure CLI without auto-initialization...';
+        fi;
+        tail -f /dev/null
+
+networks:
+  syno-core-network:
+    external: true
+
+volumes:
+  syno_core_keyvault:
+    external: true
+  syno_core_logs:
+    external: true

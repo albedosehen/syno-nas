@@ -1,71 +1,60 @@
 # ===========================================
 # DATABASE SERVICES
 # ===========================================
-# SurrealDB with Doppler-managed credentials
 
 services:
   surrealdb:
     image: surrealdb/surrealdb:latest
     container_name: core-surrealdb
     restart: unless-stopped
-    
-    # Service dependencies - assumes doppler is running
+
     depends_on:
       - doppler
-    
-    # Environment variables
+
     environment:
       - PUID=${PUID:-1000}
       - PGID=${PGID:-1000}
       - TZ=${TZ:-UTC}
-      
-    # Port mapping - local network access only
+
     ports:
       - "${SURREALDB_PORT:-8001}:8000"
-    
-    # Volume mappings optimized for Synology NAS
+
     volumes:
       - ${SURREALDB_DATA_PATH:-/volume1/docker/core/surrealdb/data}:/data
       - ${SURREALDB_CONFIG_PATH:-./config/surrealdb}:/config
-      - core_keyvault:/keyvault:ro
+      - syno_core_keyvault:/keyvault:ro
       - ./scripts:/scripts:ro
-    
-    # Use external script for startup logic
+
     command: ["/bin/bash", "/scripts/surrealdb-start.sh"]
 
-    # Health check
     healthcheck:
       test: ["CMD-SHELL", "nc -z localhost 8000 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    
-    # Resource limits
+
     deploy:
       resources:
         limits:
           memory: ${SURREALDB_MEMORY_LIMIT:-1G}
         reservations:
           memory: ${SURREALDB_MEMORY_RESERVATION:-512M}
-    
-    # Network configuration
+
     networks:
-      - core-network
-    
-    # Labels for organization
+      - syno-core-network
+
     labels:
       - "traefik.enable=false"
       - "com.synology.core.surrealdb.description=SurrealDB multi-model database"
       - "com.synology.core.surrealdb.category=storage"
 
-# Use external networks and volumes
 networks:
-  core-network:
+  syno-core-network:
     external: true
 
 volumes:
-  core_keyvault:
+  syno_core_keyvault:
     external: true
-  core_surrealdb_data:
+  syno_core_surrealdb_data:
     external: true

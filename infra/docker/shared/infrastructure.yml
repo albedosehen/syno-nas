@@ -1,0 +1,85 @@
+# ===========================================
+# SHARED INFRASTRUCTURE LAYER
+# ===========================================
+# Core networks, volumes, and base configuration for all services
+# This file provides the foundation that all modules can reference
+
+networks:
+  syno-core-network:
+    driver: bridge
+    name: syno-core-network
+    driver_opts:
+      com.docker.network.bridge.name: core-bridge
+    ipam:
+      config:
+      - subnet: 172.20.0.0/16
+        gateway: 172.20.0.1
+
+  external-network:
+    driver: bridge
+    name: external-network
+    driver_opts:
+      com.docker.network.bridge.name: external-bridge
+    ipam:
+      config:
+      - subnet: 172.21.0.0/16
+        gateway: 172.21.0.1
+
+volumes:
+  syno_core_keyvault:
+    name: syno_core_keyvault
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${SYNO_CORE_SERVICES_PATH:-/volume1/docker/core}/keyvault
+
+  syno_core_backups:
+    name: syno_core_backups
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${BACKUP_PATH:-/volume1/docker/backups/core}
+
+  syno_core_logs:
+    name: syno_core_logs
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${SYNO_CORE_SERVICES_PATH:-/volume1/docker/core}/logs
+
+# ===========================================
+# SHARED SERVICE DEFAULTS
+# ===========================================
+
+x-common-service: &common-service
+  restart: unless-stopped
+  networks:
+  - syno-core-network
+  environment:
+  - PUID=${PUID:-1000}
+  - PGID=${PGID:-1000}
+  - TZ=${TZ:-UTC}
+  - LOCAL_NETWORK_ONLY=${LOCAL_NETWORK_ONLY:-true}
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "${LOG_MAX_SIZE:-10m}"
+      max-file: "${LOG_MAX_FILES:-3}"
+      labels: "service,category,environment"
+
+x-common-healthcheck: &common-healthcheck
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 40s
+
+x-common-resources: &common-resources
+  deploy:
+    resources:
+      limits:
+        memory: 512M
+      reservations:
+        memory: 256M

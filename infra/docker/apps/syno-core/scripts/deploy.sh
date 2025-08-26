@@ -3,7 +3,6 @@
 # ===========================================
 # CORE SERVICES DEPLOYMENT SCRIPT
 # ===========================================
-# Helper script for modular deployment options
 
 set -e
 

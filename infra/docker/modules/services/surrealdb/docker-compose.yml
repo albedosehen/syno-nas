@@ -1,13 +1,93 @@
+# ===========================================
+# SURREALDB SERVICE
+# ===========================================
+# Multi-model database service using shared infrastructure
+# Integrated with centralized Doppler secrets management
+
 services:
-  surreal:
-    container_name: surrealdb
-    entrypoint: 
-      - /surreal 
-      - start 
-      - --user
-      - "sdb-admin"
-      - --pass
-      - "pass"
+  surrealdb:
     image: surrealdb/surrealdb:latest
+    container_name: surrealdb
+    restart: unless-stopped
+
+    depends_on:
+      doppler-core:
+        condition: service_healthy
+
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+      - LOCAL_NETWORK_ONLY=${LOCAL_NETWORK_ONLY:-true}
+
     ports:
-      - 8000:8000
+      - "${SURREALDB_PORT:-8000}:8000"
+
+    volumes:
+      # SurrealDB data persistence
+      - ${SURREALDB_DATA_PATH:-./data}:/data
+      # Configuration files
+      - ${SURREALDB_CONFIG_PATH:-./config}:/config
+      # Shared keyvault for secrets
+      - syno_core_keyvault:/keyvault:ro
+      # Shared logs
+      - syno_core_logs:/logs
+      # Startup scripts
+      - ./scripts:/scripts:ro
+
+    command:
+      - /bin/bash
+      - -c
+      - |
+        # Wait for keyvault to be populated
+        while [ ! -f /keyvault/SURREALDB_USERNAME ] || [ ! -f /keyvault/surrealdb_pass ]; do
+          echo 'Waiting for SurrealDB credentials in keyvault...';
+          sleep 5;
+        done;
+
+        # Read credentials from keyvault
+        SURREALDB_USERNAME=$$(cat /keyvault/SURREALDB_USERNAME);
+        SURREALDB_PASS=$$(cat /keyvault/surrealdb_pass);
+        SURREALDB_NAMESPACE=$$(cat /keyvault/surrealdb_namespace || echo 'core');
+        SURREALDB_DATABASE=$$(cat /keyvault/surrealdb_database || echo 'main');
+
+        echo 'Starting SurrealDB with keyvault credentials...';
+        /surreal start \
+          --bind 0.0.0.0:8000 \
+          --user "$${SURREALDB_USERNAME}" \
+          --pass "$${SURREALDB_PASS}" \
+          --strict \
+          file:/data/database.db
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    deploy:
+      resources:
+        limits:
+          memory: ${SURREALDB_MEMORY_LIMIT:-1G}
+        reservations:
+          memory: ${SURREALDB_MEMORY_RESERVATION:-512M}
+
+    networks:
+      - syno-core-network
+
+    labels:
+      - "traefik.enable=false"
+      - "com.synology.surrealdb.description=Multi-model database"
+      - "com.synology.surrealdb.category=storage"
+      - "com.synology.surrealdb.scope=core"
+
+networks:
+  syno-core-network:
+    external: true
+
+volumes:
+  syno_core_keyvault:
+    external: true
+  syno_core_logs:
+    external: true
