@@ -14,6 +14,59 @@ include:
 # SERVICE DEPENDENCY AND CONFIGURATION OVERRIDES
 # ===========================================
 
+services:
+  surrealdb-backup:
+    build:
+      context: ../../modules/components/surrealdb-backup
+      dockerfile: Dockerfile
+    image: synology-nas/surrealdb-backup:latest
+    container_name: core-surrealdb-backup
+    restart: unless-stopped
+
+    depends_on:
+      - doppler-core
+      - surrealdb
+
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+      - SURREALDB_ENDPOINT=http://core-surrealdb:8000
+      - HEALTH_CHECK_PORT=8080
+
+    ports:
+      - "${SURREALDB_BACKUP_HEALTH_PORT:-8081}:8080"
+
+    volumes:
+      - ${SURREALDB_BACKUP_PATH:-/volume1/docker/backups/surrealdb}:/backups
+      - syno_core_keyvault:/keyvault:ro
+      - syno_core_logs:/logs
+      - ./scripts/backup:/scripts:ro
+
+    command: ["/scripts/backup-entrypoint.sh"]
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    deploy:
+      resources:
+        limits:
+          memory: ${SURREALDB_BACKUP_MEMORY_LIMIT:-256M}
+        reservations:
+          memory: ${SURREALDB_BACKUP_MEMORY_RESERVATION:-128M}
+
+    networks:
+      - syno-core-network
+
+    labels:
+      - "traefik.enable=false"
+      - "com.synology.core.surrealdb-backup.description=SurrealDB automated backup service"
+      - "com.synology.core.surrealdb-backup.category=backup"
+
 x-global-labels: &global-labels
   com.synology.stack: "syno-core"
   com.synology.version: "1.0.0-modular"

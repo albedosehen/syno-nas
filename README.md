@@ -67,12 +67,20 @@ For detailed Portainer setup instructions, see the [Portainer README](docker/com
 
 ### 3. Explore Available Services
 
-Browse the [`docker/compositions/`](docker/compositions/) directory to see available service categories:
+Browse the [`infra/docker/apps/`](infra/docker/apps/) directory to see available service stacks:
 
+- **syno-core**: Core infrastructure services including SurrealDB, Portainer, and backup systems
 - **Management**: Portainer, monitoring tools
 - **Media**: Plex, Jellyfin, *arr services (coming soon)
 - **Productivity**: NextCloud, collaboration tools (coming soon)
 - **Networking**: VPN, proxy services (coming soon)
+
+### 4. SurrealDB Backup System
+
+The project includes a comprehensive SurrealDB backup solution:
+
+- **[SurrealDB Backup System User Guide](SURREALDB_BACKUP_GUIDE.md)** - Complete usage and monitoring guide
+- **[SurrealDB Backup Deployment Guide](SURREALDB_BACKUP_DEPLOYMENT.md)** - Initial setup and configuration
 
 ## 📁 Project Structure
 

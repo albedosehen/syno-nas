@@ -1,0 +1,2 @@
+0 2 * * * /scripts/backup-nightly.sh >> /logs/surrealdb-backup/backup.log 2>&1
+0 3 * * 0 /scripts/backup-weekly.sh >> /logs/surrealdb-backup/backup.log 2>&1
