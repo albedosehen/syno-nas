@@ -647,7 +647,7 @@ docker-compose up -d surrealdb-backup
 
 - [SurrealDB Backup Deployment Guide](SURREALDB_BACKUP_DEPLOYMENT.md)
 - [Backup Implementation Details](infra/docker/apps/syno-core/scripts/backup/README.md)
-- [Docker Compose Configuration](infra/docker/apps/syno-core/docker-compose.yml)
+- [Database Services Configuration](infra/docker/apps/syno-core/docker-compose.database.yml)
 - [Container Specification](infra/docker/modules/components/surrealdb-backup/Dockerfile)
 
 ---

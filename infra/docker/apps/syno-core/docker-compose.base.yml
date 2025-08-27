@@ -20,7 +20,7 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: ${PORTAINER_DATA_PATH:-/volume1/docker/core/portainer/data}
+      device: ${PORTAINER_DATA_PATH:-/volume1/docker/syno-core/portainer/data}
 
   syno_core_surrealdb_data:
     name: syno_core_surrealdb_data
@@ -28,7 +28,7 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: ${SURREALDB_DATA_PATH:-/volume1/docker/core/surrealdb/data}
+      device: ${SURREALDB_DATA_PATH:-/volume1/docker/syno-core/surrealdb/data}
 
   syno_core_keyvault:
     name: syno_core_keyvault

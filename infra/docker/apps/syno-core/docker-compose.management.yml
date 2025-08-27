@@ -24,7 +24,7 @@ services:
 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ${PORTAINER_DATA_PATH:-/volume1/docker/core/portainer/data}:/data
+      - ${PORTAINER_DATA_PATH:-/volume1/docker/syno-core/portainer/data}:/data
       - /volume1/docker:/var/lib/docker/volumes:ro
       - syno_core_keyvault:/keyvault:ro
       - ./scripts:/scripts:ro

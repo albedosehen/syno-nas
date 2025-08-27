@@ -173,7 +173,8 @@ docker exec core-surrealdb-backup crontab -l
 ```plaintext
 infra/docker/
 ├── apps/syno-core/
-│   ├── docker-compose.yml          # Updated with backup service
+│   ├── docker-compose.yml          # Main orchestration file (includes database)
+│   ├── docker-compose.database.yml # Database services including backup
 │   ├── .env.template               # Updated with backup variables
 │   └── scripts/backup/
 │       ├── backup-entrypoint.sh    # Container startup
