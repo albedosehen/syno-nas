@@ -37,7 +37,7 @@ usage() {
     echo "Modular deployment options:"
     echo "  base        - Deploy base infrastructure (networks, volumes)"
     echo "  secrets     - Deploy secrets management (Doppler)"
-    echo "  database    - Deploy database services (SurrealDB)"
+    echo "  database    - Deploy database services (SurrealDB + backup)"
     echo "  management  - Deploy management UI (Portainer)"
     echo "  all         - Deploy complete stack"
     echo ""
@@ -107,56 +107,87 @@ get_compose_files() {
     esac
 }
 
+# Get services for a module (used for service-specific operations)
+get_module_services() {
+    case $1 in
+        base)
+            echo ""
+            ;;
+        secrets)
+            echo "doppler"
+            ;;
+        database)
+            echo "surrealdb surrealdb-backup"
+            ;;
+        management)
+            echo "portainer"
+            ;;
+        all)
+            echo ""
+            ;;
+    esac
+}
+
 # Execute deployment
 deploy() {
     local module=$1
     local action=$2
     local compose_files=$(get_compose_files $module)
+    local services=$(get_module_services $module)
     
     log_info "Executing: $action for module: $module"
+    
+    # Build docker compose command based on module type
+    local compose_cmd
+    if [ "$module" = "all" ]; then
+        compose_cmd="docker compose -f $compose_files"
+    else
+        compose_cmd="docker compose $(echo $compose_files | sed 's/\([^ ]*\)/-f \1/g')"
+    fi
     
     case $action in
         up)
             log_info "Starting $module services..."
-            if [ "$module" = "all" ]; then
-                docker compose -f $compose_files up -d
+            if [ -n "$services" ]; then
+                eval "$compose_cmd up -d $services"
             else
-                docker compose $(echo $compose_files | sed 's/\([^ ]*\)/-f \1/g') up -d
+                eval "$compose_cmd up -d"
             fi
             log_success "$module services started successfully"
             ;;
         down)
             log_info "Stopping $module services..."
-            if [ "$module" = "all" ]; then
-                docker compose -f $compose_files down
+            if [ -n "$services" ] && [ "$module" != "all" ]; then
+                eval "$compose_cmd stop $services"
+                eval "$compose_cmd rm -f $services"
             else
-                docker compose $(echo $compose_files | sed 's/\([^ ]*\)/-f \1/g') down
+                eval "$compose_cmd down"
             fi
             log_success "$module services stopped successfully"
             ;;
         restart)
             log_info "Restarting $module services..."
-            if [ "$module" = "all" ]; then
-                docker compose -f $compose_files restart
+            if [ -n "$services" ]; then
+                eval "$compose_cmd restart $services"
             else
-                docker compose $(echo $compose_files | sed 's/\([^ ]*\)/-f \1/g') restart
+                eval "$compose_cmd restart"
             fi
             log_success "$module services restarted successfully"
             ;;
         logs)
             log_info "Showing logs for $module services..."
-            if [ "$module" = "all" ]; then
-                docker compose -f $compose_files logs -f
+            if [ -n "$services" ]; then
+                eval "$compose_cmd logs -f $services"
             else
-                docker compose $(echo $compose_files | sed 's/\([^ ]*\)/-f \1/g') logs -f
+                eval "$compose_cmd logs -f"
             fi
             ;;
         status)
             log_info "Status for $module services:"
-            if [ "$module" = "all" ]; then
-                docker compose -f $compose_files ps
+            if [ -n "$services" ]; then
+                eval "$compose_cmd ps $services"
             else
-                docker compose $(echo $compose_files | sed 's/\([^ ]*\)/-f \1/g') ps
+                eval "$compose_cmd ps"
             fi
             ;;
     esac
