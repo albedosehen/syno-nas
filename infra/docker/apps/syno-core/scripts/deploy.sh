@@ -6,6 +6,10 @@
 
 set -e
 
+# Determine script and project directories
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -28,6 +32,27 @@ log_warning() {
 
 log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
+}
+
+# Compose file mapping
+get_compose_files() {
+    case $1 in
+        base)
+            echo "$PROJECT_DIR/docker-compose.base.yml"
+            ;;
+        secrets)
+            echo "$PROJECT_DIR/docker-compose.base.yml $PROJECT_DIR/docker-compose.secrets.yml"
+            ;;
+        database)
+            echo "$PROJECT_DIR/docker-compose.base.yml $PROJECT_DIR/docker-compose.secrets.yml $PROJECT_DIR/docker-compose.database.yml"
+            ;;
+        management)
+            echo "$PROJECT_DIR/docker-compose.base.yml $PROJECT_DIR/docker-compose.secrets.yml $PROJECT_DIR/docker-compose.management.yml"
+            ;;
+        all)
+            echo "$PROJECT_DIR/docker-compose.yml"
+            ;;
+    esac
 }
 
 # Usage information
@@ -86,26 +111,6 @@ case $ACTION in
         ;;
 esac
 
-# Compose file mapping
-get_compose_files() {
-    case $1 in
-        base)
-            echo "docker-compose.base.yml"
-            ;;
-        secrets)
-            echo "docker-compose.base.yml docker-compose.secrets.yml"
-            ;;
-        database)
-            echo "docker-compose.base.yml docker-compose.secrets.yml docker-compose.database.yml"
-            ;;
-        management)
-            echo "docker-compose.base.yml docker-compose.secrets.yml docker-compose.management.yml"
-            ;;
-        all)
-            echo "docker-compose.yml"
-            ;;
-    esac
-}
 
 # Get services for a module (used for service-specific operations)
 get_module_services() {
@@ -136,6 +141,9 @@ deploy() {
     local services=$(get_module_services $module)
     
     log_info "Executing: $action for module: $module"
+    
+    # Change to project directory to ensure correct context
+    cd "$PROJECT_DIR"
     
     # Build docker compose command based on module type
     local compose_cmd
